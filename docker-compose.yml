@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sakura-postgres
+    environment:
+      POSTGRES_USER: sakura
+      POSTGRES_PASSWORD: sakura_pass
+      POSTGRES_DB: sakura_space
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sakura -d sakura_space"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    container_name: sakura-backend
+    environment:
+      DATABASE_URL: postgresql://sakura:sakura_pass@postgres:5432/sakura_space
+      JWT_SECRET: ${JWT_SECRET:-sakura-secret-key-change-in-prod}
+      JWT_EXPIRES_IN: 7d
+      PORT: 3001
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      FRONTEND_URL: http://localhost:5173
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    container_name: sakura-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
