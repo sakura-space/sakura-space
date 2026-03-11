@@ -17,14 +17,18 @@ export function setupSocketHandlers(io: Server) {
     const token =
       socket.handshake.auth?.token ||
       socket.handshake.headers?.authorization?.replace("Bearer ", "");
+    console.log(`[Socket] Auth attempt - token: ${token ? token.slice(0, 20) + "..." : "NONE"}`);
     if (!token) {
+      console.error("[Socket] Auth failed: no token");
       return next(new Error("Authentication required"));
     }
     try {
       const payload = jwt.verify(token, config.jwtSecret) as AuthPayload;
       socket.user = payload;
+      console.log(`[Socket] Auth success: ${payload.name} (${payload.role})`);
       next();
-    } catch {
+    } catch (err) {
+      console.error("[Socket] Auth failed: invalid token", err);
       next(new Error("Invalid token"));
     }
   });
@@ -50,10 +54,9 @@ export function setupSocketHandlers(io: Server) {
 
       // If operator/supervisor joining, add as member
       if (user.role !== "USER") {
-        await prisma.roomMember.upsert({
-          where: { roomId_userId: { roomId, userId: user.userId } },
-          update: {},
-          create: { roomId, userId: user.userId },
+        await prisma.roomMember.createMany({
+          data: [{ roomId, userId: user.userId }],
+          skipDuplicates: true,
         });
         // Notify room
         io.to(`room:${roomId}`).emit("room:member_joined", {
@@ -73,13 +76,18 @@ export function setupSocketHandlers(io: Server) {
     socket.on(
       "message:send",
       async ({ roomId, content }: { roomId: string; content: string }) => {
+        console.log(`[Socket] message:send from ${user.name} roomId=${roomId} content=${content?.slice(0, 50)}`);
         if (!content?.trim()) return;
 
         // Check membership
         const member = await prisma.roomMember.findUnique({
           where: { roomId_userId: { roomId, userId: user.userId } },
         });
-        if (!member && user.role === "USER") return;
+        console.log(`[Socket] membership check: ${member ? "OK" : "NOT FOUND"} (role=${user.role})`);
+        if (!member && user.role === "USER") {
+          console.error(`[Socket] message dropped: user ${user.name} is not a member of room ${roomId}`);
+          return;
+        }
 
         // Save message
         const message = await prisma.message.create({
@@ -127,10 +135,9 @@ export function setupSocketHandlers(io: Server) {
         if (user.role === "USER") return;
 
         socket.join(`room:${roomId}`);
-        await prisma.roomMember.upsert({
-          where: { roomId_userId: { roomId, userId: user.userId } },
-          update: {},
-          create: { roomId, userId: user.userId },
+        await prisma.roomMember.createMany({
+          data: [{ roomId, userId: user.userId }],
+          skipDuplicates: true,
         });
 
         const sysMsg = await prisma.message.create({
