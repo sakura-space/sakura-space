@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/auth";
 import { getSocket, disconnectSocket } from "../../api/socket";
 import ChatWindow, { ChatMessage } from "../../components/ChatWindow";
@@ -62,14 +61,6 @@ export default function OperatorChat() {
     fetchRooms();
   };
 
-  const navLinks =
-    user?.role === "SUPERVISOR" || user?.role === "ADMIN"
-      ? [
-          { to: "/monitor", label: "エージェント監視" },
-          ...(user?.role === "ADMIN" ? [{ to: "/admin", label: "システム管理" }] : []),
-        ]
-      : [];
-
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -82,19 +73,6 @@ export default function OperatorChat() {
               <p className="text-green-100 text-xs">{user?.name}</p>
             </div>
           </div>
-          {navLinks.length > 0 && (
-            <div className="flex gap-2 mt-2">
-              {navLinks.map((l) => (
-                <Link
-                  key={l.to}
-                  to={l.to}
-                  className="text-xs bg-green-700 text-white px-2 py-1 rounded hover:bg-green-800"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Escalation alerts */}

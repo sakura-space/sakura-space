@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/auth";
 import api from "../../api/client";
 
@@ -36,7 +35,7 @@ const API_COLORS: Record<ApiType, string> = {
 };
 
 export default function AdminConsole() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [tab, setTab] = useState<"users" | "permissions">("users");
   const [users, setUsers] = useState<User[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -115,17 +114,6 @@ export default function AdminConsole() {
               <h1 className="font-bold text-lg">システム管理画面</h1>
               <p className="text-red-200 text-xs">{user?.name}</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link to="/monitor" className="text-xs bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded">
-              エージェント監視
-            </Link>
-            <Link to="/operator" className="text-xs bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded">
-              オペレータ
-            </Link>
-            <button onClick={logout} className="text-xs text-red-300 hover:text-white">
-              ログアウト
-            </button>
           </div>
         </div>
       </div>

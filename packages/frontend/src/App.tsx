@@ -6,6 +6,7 @@ import UserChat from "./pages/user/UserChat";
 import OperatorChat from "./pages/operator/OperatorChat";
 import OperatorMonitor from "./pages/operator/OperatorMonitor";
 import AdminConsole from "./pages/admin/AdminConsole";
+import NavMenu from "./components/NavMenu";
 
 function RequireAuth({
   children,
@@ -39,6 +40,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <NavMenu />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<DefaultRedirect />} />

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/auth";
 import { getSocket, disconnectSocket } from "../../api/socket";
 
@@ -115,16 +114,6 @@ export default function OperatorMonitor() {
               <h1 className="font-bold text-sm">エージェント監視</h1>
               <p className="text-purple-300 text-xs">{user?.name}</p>
             </div>
-          </div>
-          <div className="flex gap-2 mt-2">
-            <Link to="/operator" className="text-xs bg-purple-700 text-white px-2 py-1 rounded hover:bg-purple-600">
-              オペレータ
-            </Link>
-            {user?.role === "ADMIN" && (
-              <Link to="/admin" className="text-xs bg-purple-700 text-white px-2 py-1 rounded hover:bg-purple-600">
-                管理
-              </Link>
-            )}
           </div>
         </div>
 
